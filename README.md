@@ -70,4 +70,4 @@ Det er en egen crt fil kun for bygning_omrade
 
 ## 5. Finpuss
 Nå skal alt ligge i OOM. Nå er det bare å tilpasse farger og symboler etter smak og behag!
-
+

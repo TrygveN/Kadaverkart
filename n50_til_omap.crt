@@ -1,5 +1,6 @@
 524	objtype = MastTele OR Tårn
-521.1   objtype = "Bygning"
+521.1   objtype = Bygning
+
 # Gård:
 534   bygningstype = "113"
 
@@ -11,8 +12,10 @@
 
 109	objtype = Terrengpunkt
 
-
 101     objtype = "Høydekurve"
+102     objtype = "Høydekurve" AND hoyde = 100
+102     objtype = "Høydekurve" AND hoyde = 200
+102     objtype = "Høydekurve" AND hoyde = 300
 103     objtype = "Hjelpekurve"
 
 412     objtype = "DyrketMark"
@@ -40,8 +43,6 @@
 539     objtype = Skitrekk
 540     objtype = "LuftledningLH" AND fler_linjer = 2
 
-
-
 504       typeveg = "enkelBilveg" AND vegkategori = "P" AND medium != "U"
 503       typeveg = "enkelBilveg" AND vegkategori = "K" AND medium != "U"
 502       typeveg = "enkelBilveg" AND vegkategori = "F" AND medium != "U"
@@ -52,3 +53,4 @@
 505       typeveg = "traktorveg"
 505       objtype = Lysløype
 505       typeveg = "gangOgSykkelveg"
+
