@@ -14,7 +14,7 @@ Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette mÃ
 
 ## 3. Koble qgis til postgis og last inn dataen
 ### Punkter
--  bygning_posisjon
+- bygning_posisjon
 - masttele
 - tarn
 - terrengpunkt
@@ -28,7 +28,6 @@ Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette mÃ
 - luftledninglh
 - lysloype
 - skitrekk
-- skytebaneinnretning
 - veglenke
 
 

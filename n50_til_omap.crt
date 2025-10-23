@@ -21,7 +21,7 @@
 214   objtype = "Industriområde"
 403     objtype = "ÅpentOmråde"
 
-401     objtype = "Golfbane" OR Alpinbakke
+401     objtype = "Golfbane" OR Alpinbakke OR Park
 538     objtype = "SportIdrettPlass"
 537	objtype = "Gravplass"
 213	objtype = Steinbrudd OR Steintipp
