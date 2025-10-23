@@ -27,7 +27,8 @@
 213	objtype = Steinbrudd OR Steintipp
 
 # Blått:
-301.2     objtype = "Havflate"
+301.3     objtype = "Havflate"
+301.4     objtype = Kystkontur
 301     objtype = "Innsjø" OR objtype = "InnsjøRegulert" OR objtype = "Elv"
 308     objtype = "Myr"
 
@@ -35,8 +36,10 @@
 
 509     objtype = "Bane" AND medium != "U"
 
-510     objtype = "LuftledningLH" AND fler_linjer = 1
-511     objtype = "LuftledningLH" AND fler_linjer = 2
+539     objtype = "LuftledningLH" AND fler_linjer = 1
+539     objtype = Skitrekk
+540     objtype = "LuftledningLH" AND fler_linjer = 2
+
 
 
 504       typeveg = "enkelBilveg" AND vegkategori = "P" AND medium != "U"
@@ -47,6 +50,5 @@
 
 506       typeveg = "sti" AND medium != "U"
 505       typeveg = "traktorveg"
+505       objtype = Lysløype
 505       typeveg = "gangOgSykkelveg"
-
-

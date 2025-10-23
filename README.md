@@ -13,7 +13,46 @@ Jeg prøvde forskjellige format, men fant ut at kun postgis ga meg alle kartdata
 Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette må du google deg frem til
 
 ## 3. Koble qgis til postgis og last inn dataen
-TODO: lag liste over lagene jeg brukte
+### Punkter
+-  bygning_posisjon
+- masttele
+- tarn
+- terrengpunkt
+
+
+### Linjer
+- bane
+- hjelpekurve
+- hoydekurve
+- kystkontur
+- luftledninglh
+- lysloype
+- skitrekk
+- skytebaneinnretning
+- veglenke
+
+
+### Flater
+
+- alpinbakke
+- apentområde
+- bygning_amrade
+- bymessigbebyggelse
+- dyrketmark
+- elv
+- golfbane
+- gravplass
+- havflate
+- industriområde
+- innsjo
+- innsjoregulert
+- myr
+- park?
+- skog
+- sportidrettplass
+- steinbrudd
+- steintipp
+- tettbebyggelse
 
 ## 4. Eksporter lagene fra qgis
 OOM bruker samme biblioteket for vektordata som qgis så den støtter samme filtyper, men ikke alle er skapt like. Jeg bruker GPGK som skal være solid.
@@ -32,3 +71,4 @@ Det er en egen crt fil kun for bygning_omrade
 
 ## 5. Finpuss
 Nå skal alt ligge i OOM. Nå er det bare å tilpasse farger og symboler etter smak og behag!
+
