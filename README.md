@@ -20,7 +20,6 @@ Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette m�
 - terrengpunkt
 - tregruppe
 
-
 ### Linjer
 - bane
 - hjelpekurve
@@ -58,9 +57,7 @@ Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette m�
 ## 4. Eksporter lagene fra qgis
 OOM bruker samme biblioteket for vektordata som qgis så den støtter samme filtyper, men ikke alle er skapt like. Jeg bruker GPGK som skal være solid.
 
-Her går det ann å ta et og et lag i hver sin fil, men det er enklere å samle de opp. Jeg strevde med å kombinere forskjellige geometrityper så det er lurt å ta en for flater, en for linjer og en for punkt.
-
-"Package layers" i processsing toolbox funker bra til dette
+Her går det ann å ta et og et lag i hver sin fil, men det er enklere å samle de opp. "Package layers" i processsing toolbox funker bra til dette
 
 Eneste untaket er at bygning_omrade bør være i en egen fil. Dette er fordi jeg ikke klarte å skille bygning punkt og flater .
 
