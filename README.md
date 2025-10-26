@@ -18,6 +18,7 @@ Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette mÃ
 - masttele
 - tarn
 - terrengpunkt
+- tregruppe
 
 
 ### Linjer
@@ -29,6 +30,7 @@ Dette er nok det vanskeligste steget og krever litt teknisk kompetanse. Dette mÃ
 - lysloype
 - skitrekk
 - veglenke
+- elvbekk
 
 
 ### Flater

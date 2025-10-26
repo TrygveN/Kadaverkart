@@ -11,6 +11,7 @@
 533   bygningstype = "249"
 
 109	objtype = Terrengpunkt
+418	objtype = Tregruppe
 
 101     objtype = "Høydekurve"
 102     objtype = "Høydekurve" AND hoyde = 100
@@ -35,7 +36,8 @@
 301     objtype = "Innsjø" OR objtype = "InnsjøRegulert" OR objtype = "Elv"
 308     objtype = "Myr"
 
-305     objtype = "ElvBekk"
+305     objtype = "ElvBekk" AND vannbredde = 2
+304     objtype = "ElvBekk" AND vannbredde = 3
 
 509     objtype = "Bane" AND medium != "U"
 
