@@ -1,14 +1,16 @@
 524	objtype = MastTele OR Tårn
-521.1   objtype = Bygning
+
+521     objtype = "Bygning" AND geometry_type = POLYGON
+521.1   objtype = Bygning AND geometry_type = POINT
 
 # Gård:
-534   bygningstype = "113"
+534   bygningstype = "113" AND geometry_type = POINT
 
 # Kirke
-536   bygningstype = "671"
+536   bygningstype = "671" AND geometry_type = POINT
 
 # Annen lagerbygning 
-533   bygningstype = "249"
+533   bygningstype = "249" AND geometry_type = POINT
 
 109	objtype = Terrengpunkt
 418	objtype = Tregruppe
@@ -55,4 +57,4 @@
 505       typeveg = "traktorveg"
 505       objtype = Lysløype
 505       typeveg = "gangOgSykkelveg"
-
+512.3	  typeveg = "enkelBilveg" AND medium = "U"

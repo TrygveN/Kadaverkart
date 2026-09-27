@@ -457,6 +457,25 @@ def parse_wkb_linearized(data: bytes):
     return _WKBReader(data).read_geometry()
 
 
+# Maps shapely's geom_type strings to the simple tag requested for the
+# "geometry_type" attribute added to every feature.
+_GEOM_TYPE_TAG = {
+    "Point": "POINT",
+    "MultiPoint": "POINT",
+    "LineString": "LINE",
+    "MultiLineString": "LINE",
+    "LinearRing": "LINE",
+    "Polygon": "POLYGON",
+    "MultiPolygon": "POLYGON",
+}
+
+
+def geometry_type_tag(geom) -> Optional[str]:
+    if geom is None:
+        return None
+    return _GEOM_TYPE_TAG.get(geom.geom_type, geom.geom_type.upper())
+
+
 def convert_value(raw: str, col: ColumnDef):
     if raw == r"\N":
         return None
@@ -599,6 +618,7 @@ def extract_tables(sql_path: Path, wanted: set[str]) -> dict[str, gpd.GeoDataFra
             continue
 
         gdf = gpd.GeoDataFrame(df, geometry=geom_col, crs="EPSG:25832")
+        gdf["geometry_type"] = gdf.geometry.apply(geometry_type_tag)
         result[tname] = gdf
 
     return result

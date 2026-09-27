@@ -360,6 +360,36 @@ def build_omap(labels: list[tuple[float, float, str, int, dict]], scale_denomina
     return "".join(parts)
 
 
+def dedupe_labels(labels: list[tuple[float, float, str, int, dict]]) -> list[tuple[float, float, str, int, dict]]:
+    """Where two labels share the same (text, skriftkode), keep only the
+    one with the highest objid; preserves original ordering otherwise."""
+    def objid_of(label) -> int:
+        raw = label[4].get("objid")
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return -1
+
+    best: dict[tuple[str, int | None], tuple] = {}
+    for label in labels:
+        _x, _y, text, code, _tags = label
+        key = (text, code)
+        current = best.get(key)
+        if current is None or objid_of(label) > objid_of(current):
+            best[key] = label
+
+    # Keep first-seen order among the surviving labels.
+    seen_keys = set()
+    result = []
+    for label in labels:
+        key = (label[2], label[3])
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        result.append(best[key])
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("input_sql", type=Path, help="Path to the PostGIS pg_dump .sql file")
@@ -381,6 +411,9 @@ def main():
         if lab is not None:
             labels.append(lab)
     print(f"{len(labels)} usable label(s) (with geometry and text).")
+
+    labels = dedupe_labels(labels)
+    print(f"{len(labels)} label(s) after removing duplicates (same text + skriftkode, keeping highest objid).")
 
     unmapped = sorted({code for _x, _y, _text, code, _tags in labels if code not in SKRIFTKODE_STYLE})
     if unmapped:
