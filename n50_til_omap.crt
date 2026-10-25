@@ -47,9 +47,11 @@
 539     objtype = Skitrekk
 540     objtype = "LuftledningLH" AND fler_linjer = 2
 
+0	typeveg = "bilferje"
 504       typeveg = "enkelBilveg" AND vegkategori = "P" AND medium != "U"
 503       typeveg = "enkelBilveg" AND vegkategori = "K" AND medium != "U"
 502       typeveg = "enkelBilveg" AND vegkategori = "F" AND medium != "U"
+502       typeveg = "enkelBilveg" AND vegkategori = "R" AND medium != "U"
 502.2     typeveg = "enkelBilveg" AND vegkategori = "E" AND medium != "U" AND motorvegtype = "motorveg"
 502       typeveg = "enkelBilveg" AND vegkategori = "E" AND medium != "U" AND motorvegtype = "IkkeMotorveg"
 
@@ -58,3 +60,4 @@
 505       objtype = Lysløype
 505       typeveg = "gangOgSykkelveg"
 512.3	  typeveg = "enkelBilveg" AND medium = "U"
+0	  medium = "U"

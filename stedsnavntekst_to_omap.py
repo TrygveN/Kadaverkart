@@ -68,6 +68,11 @@ PROJ4_25832 = "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs"
 # "Noto Sans", "Trebuchet MS") via --font.
 FONT_FAMILY = "Verdana"
 
+# Optional hand-styled map to take colours + text symbols from (see
+# --symbols). Used automatically if it sits next to this script.
+_default_tpl = Path(__file__).with_name("text_symbols.xmap")
+DEFAULT_SYMBOL_TEMPLATE = _default_tpl if _default_tpl.exists() else None
+
 # --------------------------------------------------------------------------
 # Kartverket text-style table (skriftkode -> style), condensed from
 # "Spesifikasjon for skjermkartografi, FKB og N50-N5000 Kartdata v2.2"
@@ -260,10 +265,75 @@ def row_to_label(row: dict):
 
 
 # --------------------------------------------------------------------------
+# Symbol template (colours + text symbols taken from a hand-edited map)
+# --------------------------------------------------------------------------
+
+class SymbolTemplate:
+    """Colours and text symbols read from an existing .omap/.xmap file
+    (e.g. the exported map after styling it in Mapper). Symbols are
+    matched to labels by the skriftkode in their name, e.g.
+    "By og tettsted (101)" -> skriftkode 101."""
+
+    def __init__(self, colors_xml: str, symbols: dict, all_symbol_xml: list, max_id: int):
+        self.colors_xml = colors_xml
+        self.symbols = symbols          # skriftkode -> symbol id (str)
+        self.all_symbol_xml = all_symbol_xml
+        self.max_id = max_id
+
+        # priority -> (r, g, b) so generated fallback symbols can pick
+        # the closest matching colour.
+        self.color_rgb: dict[str, tuple[float, float, float]] = {}
+        import xml.etree.ElementTree as ET
+        for c in ET.fromstring(colors_xml).findall("color"):
+            rgb = c.find("rgb")
+            if rgb is not None:
+                self.color_rgb[c.attrib["priority"]] = (
+                    float(rgb.attrib.get("r", 0)),
+                    float(rgb.attrib.get("g", 0)),
+                    float(rgb.attrib.get("b", 0)),
+                )
+
+    def closest_color(self, rgb: tuple[float, float, float]) -> str:
+        return min(
+            self.color_rgb,
+            key=lambda pr: sum((a - b) ** 2 for a, b in zip(self.color_rgb[pr], rgb)),
+        )
+
+
+def load_symbol_template(path: Path) -> SymbolTemplate:
+    text = path.read_text(encoding="utf-8")
+    m = re.search(r"<colors\b.*?</colors>", text, re.S)
+    if not m:
+        sys.exit(f"No <colors> block found in symbol template {path}")
+    colors_xml = m.group(0)
+
+    symbols: dict[int, str] = {}
+    all_xml: list[str] = []
+    max_id = -1
+    for sm in re.finditer(r"<symbol\b[^>]*>.*?</symbol>", text, re.S):
+        sym_xml = sm.group(0)
+        head = re.match(r"<symbol\b([^>]*)>", sym_xml).group(1)
+        id_m = re.search(r'\bid="(\d+)"', head)
+        name_m = re.search(r'\bname="([^"]*)"', head)
+        if not id_m or 'type="8"' not in head:
+            continue  # only text symbols are relevant here
+        sym_id = int(id_m.group(1))
+        max_id = max(max_id, sym_id)
+        all_xml.append(sym_xml)
+        code_m = re.search(r"\((\d+)\)\s*$", name_m.group(1)) if name_m else None
+        if code_m:
+            symbols[int(code_m.group(1))] = str(sym_id)
+    if not all_xml:
+        sys.exit(f"No text symbols found in symbol template {path}")
+    return SymbolTemplate(colors_xml, symbols, all_xml, max_id)
+
+
+# --------------------------------------------------------------------------
 # .omap writing
 # --------------------------------------------------------------------------
 
-def build_omap(labels: list[tuple[float, float, str, int, dict]], scale_denominator: int, font_family: str) -> str:
+def build_omap(labels: list[tuple[float, float, str, int, dict]], scale_denominator: int, font_family: str,
+               template: 'SymbolTemplate | None' = None) -> str:
     xs = [lab[0] for lab in labels]
     ys = [lab[1] for lab in labels]
     ref_x = sum(xs) / len(xs)
@@ -288,20 +358,37 @@ def build_omap(labels: list[tuple[float, float, str, int, dict]], scale_denomina
             file=sys.stderr,
         )
 
-    # One symbol per distinct skriftkode actually used (falls back to
-    # DEFAULT_STYLE for anything not in the table), so each label gets
-    # its proper size/weight/colour/caps treatment.
     used_codes = sorted({code for _x, _y, _text, code, _tags in labels}, key=lambda c: (c is None, c))
     symbol_id_by_code: dict[int | None, str] = {}
-    symbol_defs = []
-    color_id_by_name = {"black": 0, "blue": 1}
+    symbol_defs: list[str] = []
 
-    for i, code in enumerate(used_codes):
+    if template is not None:
+        # Use the template's colours and symbols verbatim; only generate
+        # a symbol for codes the template doesn't cover.
+        colors_block = template.colors_xml
+        symbol_defs.extend(template.all_symbol_xml)
+        symbol_id_by_code.update(template.symbols)
+        next_id = template.max_id + 1
+        color_ref = {"black": template.closest_color(COLOR_RGB["black"]),
+                     "blue": template.closest_color(COLOR_RGB["blue"])}
+    else:
+        colors_block = '<colors count="2">' + "".join(
+            f'<color priority="{cid}" name="{name.capitalize()}" c="0" m="0" y="0" k="0" opacity="1">'
+            f'<cmyk method="rgb"/><rgb method="custom" r="{r:.4f}" g="{g:.4f}" b="{b:.4f}"/></color>'
+            for cid, (name, (r, g, b)) in enumerate(COLOR_RGB.items())
+        ) + "</colors>"
+        next_id = 0
+        color_ref = {"black": "0", "blue": "1"}
+
+    missing = [c for c in used_codes if c not in symbol_id_by_code]
+    if template is not None and missing:
+        print(f"Note: skriftkode(s) {missing} not in the symbol template; generating default symbols for them.", file=sys.stderr)
+    for code in missing:
         category, bold, italic, caps, size_mm, color_name = SKRIFTKODE_STYLE.get(code, DEFAULT_STYLE)
-        sym_id = str(i)
+        sym_id = str(next_id)
+        next_id += 1
         symbol_id_by_code[code] = sym_id
-        size_native = round(size_mm * 1000)
-        attrs = f'family="{xml_escape(font_family)}" size="{size_native}"'
+        attrs = f'family="{xml_escape(font_family)}" size="{round(size_mm * 1000)}"'
         if bold:
             attrs += ' bold="true"'
         if italic:
@@ -311,7 +398,7 @@ def build_omap(labels: list[tuple[float, float, str, int, dict]], scale_denomina
             f'<symbol type="8" id="{sym_id}" code="" name="{xml_escape(name)}">'
             f'<text_symbol icon_text="" rotatable="true">'
             f"<font {attrs}/>"
-            f'<text color="{color_id_by_name[color_name]}" line_spacing="1" '
+            f'<text color="{color_ref[color_name]}" line_spacing="1" '
             f'paragraph_spacing="0" character_spacing="0" kerning="true"/>'
             f"</text_symbol></symbol>"
         )
@@ -327,14 +414,7 @@ def build_omap(labels: list[tuple[float, float, str, int, dict]], scale_denomina
     parts.append("</projected_crs>")
     parts.append("</georeferencing>\n")
 
-    parts.append('<colors count="2">')
-    for name, cid in color_id_by_name.items():
-        r, g, b = COLOR_RGB[name]
-        parts.append(
-            f'<color priority="{cid}" name="{name.capitalize()}" c="0" m="0" y="0" k="0" opacity="1">'
-            f'<cmyk method="rgb"/><rgb method="custom" r="{r:.4f}" g="{g:.4f}" b="{b:.4f}"/></color>'
-        )
-    parts.append("</colors>\n")
+    parts.append(colors_block + "\n")
 
     parts.append(f'<symbols count="{len(symbol_defs)}" id="stedsnavntekst">')
     parts.extend(symbol_defs)
@@ -396,6 +476,10 @@ def main():
     parser.add_argument("output_omap", type=Path, help="Path to write the output .omap file")
     parser.add_argument("--scale", type=int, default=50000, help="Map scale denominator, e.g. 50000 for 1:50 000 (default: 50000)")
     parser.add_argument("--font", type=str, default=FONT_FAMILY, help=f"Font family for all labels (default: {FONT_FAMILY})")
+    parser.add_argument("--symbols", type=Path, default=DEFAULT_SYMBOL_TEMPLATE,
+                        help="Map file (.xmap/.omap) to take colours and text symbols from; symbols are matched by the "
+                             "skriftkode in their name. Use --symbols none to use the built-in styles "
+                             f"(default: {DEFAULT_SYMBOL_TEMPLATE.name} next to this script, if present)")
     args = parser.parse_args()
 
     if not args.input_sql.exists():
@@ -422,7 +506,14 @@ def main():
     if not labels:
         sys.exit("No usable labels -- nothing to write.")
 
-    xml_text = build_omap(labels, args.scale, args.font)
+    template = None
+    if args.symbols is not None and str(args.symbols).lower() != "none":
+        if not args.symbols.exists():
+            sys.exit(f"Symbol template not found: {args.symbols}")
+        template = load_symbol_template(args.symbols)
+        print(f"Using colours and symbols from {args.symbols} ({len(template.symbols)} skriftkode-matched symbols).")
+
+    xml_text = build_omap(labels, args.scale, args.font, template)
     args.output_omap.write_text(xml_text, encoding="utf-8")
     print(f"Wrote {len(labels)} text objects to {args.output_omap}")
 
